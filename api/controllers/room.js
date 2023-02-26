@@ -34,9 +34,20 @@ export const updateRoom = async (req, res, next) => {
 };
 
 export const deleteRoom = async (req, res, next) => {
-    await Room.deleteOne({_id: req.params.id})
-               .then(() => res.status(200).json({message: "Room supprimé"}))
-                .catch(error => next(error))
+    const hotelId = req.params.hotelid;
+    try {
+      await Room.findByIdAndDelete(req.params.id);
+      try {
+        await Hotel.findByIdAndUpdate(hotelId, {
+          $pull: { rooms: req.params.id },
+        });
+      } catch (err) {
+        next(err);
+      }
+      res.status(200).json("Room has been deleted.");
+    } catch (err) {
+      next(err);
+    }
 }
 
 export const getOneRoom = async (req, res, next) => {
